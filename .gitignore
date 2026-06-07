@@ -11,3 +11,6 @@ home-assistant/frigate/config/.vacuum
 home-assistant/zigbee2mqtt/database.db
 home-media-docker/docker-compose.yml
 home-media-docker/.env
+home-lab/docker-compose.yml
+home-lab/ha.env
+home-lab/.env
