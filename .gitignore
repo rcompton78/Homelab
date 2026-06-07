@@ -9,3 +9,5 @@ home-assistant/frigate/config/.jwt_secret
 home-assistant/frigate/config/.timeline
 home-assistant/frigate/config/.vacuum
 home-assistant/zigbee2mqtt/database.db
+home-media-docker/docker-compose.yml
+home-media-docker/.env
