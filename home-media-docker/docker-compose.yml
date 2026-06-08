@@ -36,6 +36,9 @@ services:
     #
   plex:
     image: lscr.io/linuxserver/plex:latest
+    depends_on:
+      bazarr:
+        condition: service_started
     container_name: plex
     network_mode: host
     deploy:
@@ -97,6 +100,9 @@ services:
 
   jackett:
     image: linuxserver/jackett
+    depends_on:
+      radarr:
+        condition: service_started
     network_mode: host
     container_name: jackett
     environment:
@@ -158,6 +164,9 @@ services:
 
   overseerr:
     image: lscr.io/linuxserver/overseerr:latest
+    depends_on:
+      prowlarr:
+        condition: service_started
     container_name: overseerr
     network_mode: host
     environment:
@@ -169,6 +178,9 @@ services:
     restart: unless-stopped
   tautulli:
     image: lscr.io/linuxserver/tautulli:latest
+    depends_on:
+      overseerr:
+        condition: service_started
     container_name: tautulli
     network_mode: host
     environment:
@@ -181,6 +193,9 @@ services:
 
   bazarr:
     image: lscr.io/linuxserver/bazarr:latest
+    depends_on:
+      tautulli:
+        condition: service_started
     container_name: bazarr
     network_mode: host
     environment:
@@ -195,6 +210,9 @@ services:
 
   prowlarr:
     image: lscr.io/linuxserver/prowlarr:latest
+    depends_on:
+      jackett:
+        condition: service_started
     container_name: prowlarr
     network_mode: host
     environment:
