@@ -11,8 +11,8 @@ A Docker Compose stack for a self-hosted home media server. Services are wired t
 Copy `.env.template` to `.env` and fill in your values before starting:
 
 ```
-DATA_ROOT=/media/ntfsdrive          # Where media files live
-METADATA_ROOT=/home/compton/home-media-docker  # Config/state per-service
+MEDIA_ROOT=/media/ntfsdrive          # Where media files live
+DATA_DIR=/home/compton/home-media-docker  # Config/state per-service
 OPENVPN_CONF_ROOT=...               # Dir containing your .ovpn file
 ```
 
@@ -57,10 +57,10 @@ nginx (web service, ports 8080/8112)
 **Key networking rule:** `sabnzbd` and `deluge` use `network_mode: service:vpn`, so all their traffic routes through the VPN container. They are not directly reachable from the host — nginx proxies them via the `vpn` container alias (`links: vpn:deluge`, `vpn:sabnzbd`). All other services use `network_mode: host`.
 
 **Data layout convention:**
-- `/config` → `$METADATA_ROOT/<service>/config`
-- `/movies` → `$DATA_ROOT/Movies`
-- `/tv` → `$DATA_ROOT/TV`
-- `/downloads` → `$DATA_ROOT/Complete`
+- `/config` → `$DATA_DIR/<service>/config`
+- `/movies` → `$MEDIA_ROOT/Movies`
+- `/tv` → `$MEDIA_ROOT/TV`
+- `/downloads` → `$MEDIA_ROOT/Complete`
 
 ## GPU (NVIDIA) support
 

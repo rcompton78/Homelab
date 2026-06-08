@@ -44,9 +44,9 @@ services:
       - NVIDIA_VISIBLE_DEVICES=all
       - NVIDIA_DRIVER_CAPABILITIES=compute,video,utility
     volumes:
-      - $METADATA_ROOT/plex/config:/config
-      - $METADATA_ROOT/plex/transcode:/transcode
-      - $DATA_ROOT:/data
+      - $DATA_DIR/plex/config:/config
+      - $DATA_DIR/plex/transcode:/transcode
+      - $MEDIA_ROOT:/data
     restart: unless-stopped
 
   plex-old:
@@ -55,9 +55,9 @@ services:
       - .env.template
     network_mode: host
     volumes:
-      - $METADATA_ROOT/plex/config:/config
-      - $METADATA_ROOT/plex/transcode:/transcode
-      - $DATA_ROOT:/data
+      - $DATA_DIR/plex/config:/config
+      - $DATA_DIR/plex/transcode:/transcode
+      - $MEDIA_ROOT:/data
     environment:
       - TZ="America/Edmonton"
       - PLEX_UID=$UUID
@@ -73,9 +73,9 @@ services:
       - TZ="America/Edmonton"
       - UMASK_SET=022 #optional
     volumes:
-      - $METADATA_ROOT/radarr/config:/config
-      - $DATA_ROOT/Movies:/movies
-      - $DATA_ROOT/Complete:/downloads
+      - $DATA_DIR/radarr/config:/config
+      - $MEDIA_ROOT/Movies:/movies
+      - $MEDIA_ROOT/Complete:/downloads
     restart: unless-stopped
 
   sonarr:
@@ -90,9 +90,9 @@ services:
       - TZ="America/Edmonton"
       - UMASK_SET=022 #optional
     volumes:
-      - $METADATA_ROOT/sonarr/config:/config
-      - $DATA_ROOT/TV:/tv
-      - $DATA_ROOT/Complete:/downloads
+      - $DATA_DIR/sonarr/config:/config
+      - $MEDIA_ROOT/TV:/tv
+      - $MEDIA_ROOT/Complete:/downloads
     restart: unless-stopped
 
   jackett:
@@ -104,7 +104,7 @@ services:
       - PGID=$GUID
       - TZ="America/Edmonton"
     volumes:
-      - $METADATA_ROOT/jackett/config:/config
+      - $DATA_DIR/jackett/config:/config
     restart: unless-stopped
 
   sabnzbd:
@@ -118,9 +118,9 @@ services:
       - PGID=$GUID
       - TZ="America/Edmonton"
     volumes:
-      - $METADATA_ROOT/sabnzbd/config:/config
-      - $DATA_ROOT/Complete:/downloads
-      - $DATA_ROOT/incomplete:/incomplete-downloads
+      - $DATA_DIR/sabnzbd/config:/config
+      - $MEDIA_ROOT/Complete:/downloads
+      - $MEDIA_ROOT/incomplete:/incomplete-downloads
     restart: unless-stopped
 
   deluge:
@@ -136,8 +136,8 @@ services:
       - UMASK_SET=022 #optional
       - DELUGE_LOGLEVEL=error #optional
     volumes:
-      - $METADATA_ROOT/deluge/config:/config
-      - $DATA_ROOT/Complete:/downloads
+      - $DATA_DIR/deluge/config:/config
+      - $MEDIA_ROOT/Complete:/downloads
     restart: unless-stopped
 
   overseerr:
@@ -149,7 +149,7 @@ services:
       - PGID=$GUID
       - TZ="America/Edmonton"
     volumes:
-      - $METADATA_ROOT/overseer/config:/config
+      - $DATA_DIR/overseer/config:/config
     restart: unless-stopped
   tautulli:
     image: lscr.io/linuxserver/tautulli:latest
@@ -160,7 +160,7 @@ services:
       - PGID=$GUID
       - TZ="America/Edmonton"
     volumes:
-      - $METADATA_ROOT/tautulli/config:/config
+      - $DATA_DIR/tautulli/config:/config
     restart: unless-stopped
 
   bazarr:
@@ -172,9 +172,9 @@ services:
       - PGID=$GUID
       - TZ=America/Edmonton
     volumes:
-      - $METADATA_ROOT/bazarr/config:/config
-      - $DATA_ROOT/Movies:/movies
-      - $DATA_ROOT/TV:/tv
+      - $DATA_DIR/bazarr/config:/config
+      - $MEDIA_ROOT/Movies:/movies
+      - $MEDIA_ROOT/TV:/tv
     restart: unless-stopped
 
   prowlarr:
@@ -186,7 +186,7 @@ services:
       - PGID=$GUID
       - TZ=America/Edmonton
     volumes:
-      - $METADATA_ROOT/prowlarr/config:/config
+      - $DATA_DIR/prowlarr/config:/config
     restart: unless-stopped
 
 
