@@ -1,0 +1,101 @@
+services:
+  eufy-security-ws:
+    container_name: eufy-security-ws
+    image: bropat/eufy-security-ws
+    volumes:
+      - $HOME/eufy-data:/data
+    environment:
+      - USERNAME=${EUFY_USERNAME}
+      - PASSWORD=${EUFY_PASSWORD}
+      - PORT=${EUFY_PORT}
+    restart: unless-stopped
+    privileged: true
+    network_mode: host
+
+  homeassistant:
+    container_name: homeassistant
+    image: "ghcr.io/home-assistant/home-assistant:stable"
+    depends_on: 
+      - eufy-security-ws
+      - mosquitto
+      - zigbee2mqtt
+      - frigate
+      - esphome
+    volumes:
+      - /$HOME/home-assistant:/config
+      - /etc/localtime:/etc/localtime:ro
+    devices:
+        - /dev/ttyUSB0:/dev/ttyUSB0
+    restart: unless-stopped
+    privileged: true
+    network_mode: host
+
+  mosquitto:
+    image: eclipse-mosquitto
+    hostname: mosquitto
+    container_name: mosquitto
+    restart: unless-stopped
+    network_mode: host
+    volumes:
+      - ./mosquitto:/etc/mosquitto
+      - ./mosquitto/mosquitto.conf:/mosquitto/config/mosquitto.conf
+
+  zigbee2mqtt:
+    container_name: zigbee2mqtt
+    image: koenkk/zigbee2mqtt
+    volumes:
+      - ./zigbee2mqtt:/app/data
+      - /run/udev:/run/udev:ro
+    devices:
+      - /dev/ttyUSB0:/dev/ttyUSB0
+    restart: unless-stopped
+    network_mode: host
+    privileged: true
+    environment:
+      - TZ=America/Edmonton
+  frigate:
+    container_name: frigate
+    privileged: true # this may not be necessary for all setups
+    restart: unless-stopped
+    image: ghcr.io/blakeblackshear/frigate:stable
+    shm_size: "128mb" # update for your cameras based on calculation above
+    deploy:    # <------------- Add this section
+      resources:
+        reservations:
+          devices:
+            - driver: nvidia
+              count: 1 # number of GPUs
+              capabilities: [gpu]
+    devices:
+      - /dev/bus/usb:/dev/bus/usb  # Passes the USB Coral, needs to be modified for other versions
+      - /dev/dri/renderD128:/dev/dri/renderD128 # For intel hwaccel, needs to be updated for your hardware
+    volumes:
+      - /etc/localtime:/etc/localtime:ro
+      - $PWD/frigate/config:/config
+      - /data/frigate:/media/frigate
+      - type: tmpfs # Optional: 1GB of memory, reduces SSD/SD Card wear
+        target: /tmp/cache
+        tmpfs:
+          size: 1000000000
+    network_mode: host
+      #ports:
+      #- "5000:5000"
+      #- "8554:8554" # RTSP feeds
+      #- "8555:8555/tcp" # WebRTC over tcp
+      #- "8555:8555/udp" # WebRTC over udp
+    environment:
+      REOLINK_USERNAME: "${REOLINK_USERNAME}"
+      REOLINK_PASSWORD: "${REOLINK_PASSWORD}"
+  
+  esphome:
+    container_name: esphome
+    image: ghcr.io/esphome/esphome:2025.6
+    volumes:
+      - $HOME/esphome/config:/config
+      - /etc/localtime:/etc/localtime:ro
+    restart: always
+    privileged: true
+    network_mode: host
+    environment:
+      - USERNAME=${ESPHOME_USERNAME}
+      - PASSWORD=${ESPHOME_PASSWORD}

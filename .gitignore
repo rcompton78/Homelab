@@ -1,6 +1,5 @@
 home-assistant/.env
 home-assistant/ha.env
-home-assistant/docker-compose.yml
 home-assistant/frigate/config/config.yml
 home-assistant/frigate/config/*.db
 home-assistant/frigate/config/*.db-shm
@@ -10,8 +9,6 @@ home-assistant/frigate/config/.jwt_secret
 home-assistant/frigate/config/.timeline
 home-assistant/frigate/config/.vacuum
 home-assistant/zigbee2mqtt/database.db
-home-media-docker/docker-compose.yml
 home-media-docker/.env
-home-lab/docker-compose.yml
 home-lab/ha.env
 home-lab/.env

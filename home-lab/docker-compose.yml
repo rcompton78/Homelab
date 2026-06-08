@@ -1,0 +1,53 @@
+version: '3.8'
+services:
+  app:
+    image: 'jc21/nginx-proxy-manager:latest'
+    restart: unless-stopped
+    ports:
+      # These ports are in format <host-port>:<container-port>
+      - '80:80' # Public HTTP Port
+      - '443:443' # Public HTTPS Port
+      - '81:81' # Admin Web Port
+      # Add any other Stream port you want to expose
+      # - '21:21' # FTP
+    env_file:
+      - .env
+    environment:
+      # Mysql/Maria connection parameters:
+      DB_MYSQL_HOST: ${DB_HOST}
+      DB_MYSQL_PORT: ${DB_PORT}
+      DB_MYSQL_USER: ${DB_USER}
+      DB_MYSQL_PASSWORD: ${DB_PASSWORD}
+      DB_MYSQL_NAME: ${DB_NAME}
+      # Uncomment this if IPv6 is not enabled on your host
+      # DISABLE_IPV6: 'true'
+    volumes:
+      - ${DATA_ROOT}/npm/data:/data
+      - ${DATA_ROOT}/npm/letsencrypt:/etc/letsencrypt
+    depends_on:
+      - db
+    network_mode: host
+
+  db:
+    image: 'jc21/mariadb-aria:latest'
+    restart: unless-stopped
+    env_file:
+      - .env
+    environment:
+      MYSQL_ROOT_PASSWORD: ${DB_PASSWORD}
+      MYSQL_DATABASE: ${DB_NAME}
+      MYSQL_USER: ${DB_USER}
+      MYSQL_PASSWORD: ${DB_PASSWORD}
+    volumes:
+      - ${DATA_ROOT}/npm/mysql:/var/lib/mysql
+    network_mode: host
+
+  memos:
+    image: neosmemo/memos:stable
+    container_name: memos
+    restart: unless-stopped
+    volumes:
+      - ${DATA_ROOT}/memos:/var/opt/memos
+    network_mode: host
+    # Listens on port 5230
+    # In NPM: create a proxy host → http://localhost:5230

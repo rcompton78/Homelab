@@ -1,0 +1,225 @@
+version: '3.7'
+services:
+  vpn:
+    image: dperson/openvpn-client
+    # cap_add, security_opt, and volume required for the image to function
+    cap_add:
+    - net_admin
+    dns:
+      - 8.8.8.8
+      - 8.8.4.4
+    environment:
+      TZ: 'EST5EDT'
+    networks:
+    - default
+    read_only: true
+    tmpfs:
+    - /run
+    - /tmp
+    restart: unless-stopped
+    security_opt:
+    - label:disable
+    stdin_open: true
+    tty: true
+    volumes:
+    - /dev/net:/dev/net:z
+    - $OPENVPN_CONF_ROOT/conf:/vpn
+    # Put .ovpn configuration file in the /vpn directory (in "volumes:" above or
+    # launch using the command line arguments, IE pick one:
+    # command: 'server;user;password[;port]'
+    #
+  plex:
+    image: lscr.io/linuxserver/plex:latest
+    container_name: plex
+    network_mode: host
+    deploy:
+      resources:
+        reservations:
+          devices:
+            - capabilities: [gpu]
+    environment:
+      - PUID=$UUID
+      - PGID=$GUID
+      - VERSION=docker
+      - NVIDIA_VISIBLE_DEVICES=all
+      - NVIDIA_DRIVER_CAPABILITIES=compute,video,utility
+    volumes:
+      - $METADATA_ROOT/plex/config:/config
+      - $METADATA_ROOT/plex/transcode:/transcode
+      - $DATA_ROOT:/data
+    restart: unless-stopped
+
+  plex-old:
+    image: plexinc/pms-docker:plexpass
+    env_file:
+      - .env.template
+    network_mode: host
+    volumes:
+      - $METADATA_ROOT/plex/config:/config
+      - $METADATA_ROOT/plex/transcode:/transcode
+      - $DATA_ROOT:/data
+    environment:
+      - TZ="America/Edmonton"
+      - PLEX_UID=$UUID
+      - PLEX_GID=$GUID
+
+  radarr:
+    image: linuxserver/radarr
+    network_mode: host
+    container_name: radarr
+    environment:
+      - PUID=$UUID
+      - PGID=$GUID
+      - TZ="America/Edmonton"
+      - UMASK_SET=022 #optional
+    volumes:
+      - $METADATA_ROOT/radarr/config:/config
+      - $DATA_ROOT/Movies:/movies
+      - $DATA_ROOT/Complete:/downloads
+    restart: unless-stopped
+
+  sonarr:
+    image: linuxserver/sonarr
+    network_mode: host
+    container_name: sonarr
+    security_opt:
+      - seccomp:unconfined
+    environment:
+      - PUID=$UUID
+      - PGID=$GUID
+      - TZ="America/Edmonton"
+      - UMASK_SET=022 #optional
+    volumes:
+      - $METADATA_ROOT/sonarr/config:/config
+      - $DATA_ROOT/TV:/tv
+      - $DATA_ROOT/Complete:/downloads
+    restart: unless-stopped
+
+  jackett:
+    image: linuxserver/jackett
+    network_mode: host
+    container_name: jackett
+    environment:
+      - PUID=$UUID
+      - PGID=$GUID
+      - TZ="America/Edmonton"
+    volumes:
+      - $METADATA_ROOT/jackett/config:/config
+    restart: unless-stopped
+
+  sabnzbd:
+    image: linuxserver/sabnzbd
+    depends_on:
+      - vpn
+    network_mode: service:vpn
+    container_name: sabnzbd
+    environment:
+      - PUID=$UUID
+      - PGID=$GUID
+      - TZ="America/Edmonton"
+    volumes:
+      - $METADATA_ROOT/sabnzbd/config:/config
+      - $DATA_ROOT/Complete:/downloads
+      - $DATA_ROOT/incomplete:/incomplete-downloads
+    restart: unless-stopped
+
+  deluge:
+    image: linuxserver/deluge
+    depends_on:
+    - vpn
+    network_mode: service:vpn
+    container_name: deluge
+    environment:
+      - PUID=$UUID
+      - PGID=$GUID
+      - TZ="America/Edmonton"
+      - UMASK_SET=022 #optional
+      - DELUGE_LOGLEVEL=error #optional
+    volumes:
+      - $METADATA_ROOT/deluge/config:/config
+      - $DATA_ROOT/Complete:/downloads
+    restart: unless-stopped
+
+  overseerr:
+    image: lscr.io/linuxserver/overseerr:latest
+    container_name: overseerr
+    network_mode: host
+    environment:
+      - PUID=$UUID
+      - PGID=$GUID
+      - TZ="America/Edmonton"
+    volumes:
+      - $METADATA_ROOT/overseer/config:/config
+    restart: unless-stopped
+  tautulli:
+    image: lscr.io/linuxserver/tautulli:latest
+    container_name: tautulli
+    network_mode: host
+    environment:
+      - PUID=$UUID
+      - PGID=$GUID
+      - TZ="America/Edmonton"
+    volumes:
+      - $METADATA_ROOT/tautulli/config:/config
+    restart: unless-stopped
+
+  bazarr:
+    image: lscr.io/linuxserver/bazarr:latest
+    container_name: bazarr
+    network_mode: host
+    environment:
+      - PUID=$UUID
+      - PGID=$GUID
+      - TZ=America/Edmonton
+    volumes:
+      - $METADATA_ROOT/bazarr/config:/config
+      - $DATA_ROOT/Movies:/movies
+      - $DATA_ROOT/TV:/tv
+    restart: unless-stopped
+
+  prowlarr:
+    image: lscr.io/linuxserver/prowlarr:latest
+    container_name: prowlarr
+    network_mode: host
+    environment:
+      - PUID=$UUID
+      - PGID=$GUID
+      - TZ=America/Edmonton
+    volumes:
+      - $METADATA_ROOT/prowlarr/config:/config
+    restart: unless-stopped
+
+
+  web:
+    image: nginx
+    environment:
+    - TZ="America/Edmonton"
+    depends_on:
+    - deluge
+    - sabnzbd
+    - sonarr
+    - radarr
+    - jackett
+    - plex
+    - overseerr
+    - tautulli
+    - bazarr
+    - prowlarr
+    links:
+    - vpn:deluge
+    - vpn:sabnzbd
+    networks:
+    - default
+    ports:
+    - "8080:8080"
+    - "8112:8112"
+    read_only: true
+    tmpfs:
+    - /run
+    - /tmp
+    - /var/cache/nginx
+    restart: unless-stopped
+    stdin_open: true
+    tty: true
+    volumes:
+      - $PWD/nginx/default.conf:/etc/nginx/nginx.conf
