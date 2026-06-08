@@ -23,7 +23,7 @@ services:
     tty: true
     volumes:
     - /dev/net:/dev/net:z
-    - $OPENVPN_CONF_ROOT/conf:/vpn
+    - $MEDIA_ROOT/openvpn/conf:/vpn
     # Put .ovpn configuration file in the /vpn directory (in "volumes:" above or
     # launch using the command line arguments, IE pick one:
     # command: 'server;user;password[;port]'
