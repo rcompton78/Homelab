@@ -1,4 +1,5 @@
-ha.env
+home-assistant/.env
+home-assistant/ha.env
 home-assistant/docker-compose.yml
 home-assistant/frigate/config/config.yml
 home-assistant/frigate/config/*.db
