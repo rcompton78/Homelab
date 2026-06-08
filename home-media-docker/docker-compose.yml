@@ -23,7 +23,7 @@ services:
     tty: true
     volumes:
     - /dev/net:/dev/net:z
-    - $MEDIA_ROOT/openvpn/conf:/vpn
+    - $DATA_DIR/openvpn/conf:/vpn
     # Put .ovpn configuration file in the /vpn directory (in "volumes:" above or
     # launch using the command line arguments, IE pick one:
     # command: 'server;user;password[;port]'
@@ -48,20 +48,6 @@ services:
       - $DATA_DIR/plex/transcode:/transcode
       - $MEDIA_ROOT:/data
     restart: unless-stopped
-
-  plex-old:
-    image: plexinc/pms-docker:plexpass
-    env_file:
-      - .env.template
-    network_mode: host
-    volumes:
-      - $DATA_DIR/plex/config:/config
-      - $DATA_DIR/plex/transcode:/transcode
-      - $MEDIA_ROOT:/data
-    environment:
-      - TZ="America/Edmonton"
-      - PLEX_UID=$UUID
-      - PLEX_GID=$GUID
 
   radarr:
     image: linuxserver/radarr
