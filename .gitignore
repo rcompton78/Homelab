@@ -12,3 +12,4 @@ home-assistant/zigbee2mqtt/database.db
 home-media-docker/.env
 home-lab/ha.env
 home-lab/.env
+.claude/workflow.local.md
