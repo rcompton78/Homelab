@@ -234,11 +234,11 @@ services:
     - sonarr
     - radarr
     - jackett
-    - plex
+    - prowlarr
     - overseerr
     - tautulli
     - bazarr
-    - prowlarr
+    - plex
     links:
     - vpn:deluge
     - vpn:sabnzbd
