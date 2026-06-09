@@ -262,4 +262,4 @@ services:
     stdin_open: true
     tty: true
     volumes:
-      - $PWD/nginx/default.conf:/etc/nginx/nginx.conf
+      - ./nginx/default.conf:/etc/nginx/nginx.conf
