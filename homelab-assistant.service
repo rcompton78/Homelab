@@ -1,0 +1,14 @@
+[Unit]
+Description=Homelab Home Assistant Stack
+After=docker.service
+Requires=docker.service
+
+[Service]
+Type=oneshot
+RemainAfterExit=yes
+WorkingDirectory=/home/compton/repos/Homelab
+ExecStart=/home/compton/repos/Homelab/launch.bash home-assistant start
+ExecStop=/home/compton/repos/Homelab/launch.bash home-assistant stop
+
+[Install]
+WantedBy=multi-user.target
