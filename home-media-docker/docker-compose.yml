@@ -37,7 +37,7 @@ services:
   plex:
     image: lscr.io/linuxserver/plex:latest
     depends_on:
-      bazarr:
+      jackett:
         condition: service_started
     container_name: plex
     network_mode: host
@@ -61,8 +61,10 @@ services:
   radarr:
     image: linuxserver/radarr
     depends_on:
-      sonarr:
-        condition: service_started
+      deluge:
+        condition: service_healthy
+      sabnzbd:
+        condition: service_healthy
     network_mode: host
     container_name: radarr
     environment:
@@ -101,6 +103,8 @@ services:
   jackett:
     image: linuxserver/jackett
     depends_on:
+      sonarr:
+        condition: service_started
       radarr:
         condition: service_started
     network_mode: host
@@ -117,8 +121,6 @@ services:
     image: linuxserver/sabnzbd
     depends_on:
       vpn:
-        condition: service_healthy
-      deluge:
         condition: service_healthy
     network_mode: service:vpn
     container_name: sabnzbd
@@ -165,7 +167,9 @@ services:
   overseerr:
     image: lscr.io/linuxserver/overseerr:latest
     depends_on:
-      prowlarr:
+      sonarr:
+        condition: service_started
+      radarr:
         condition: service_started
     container_name: overseerr
     network_mode: host
@@ -179,7 +183,7 @@ services:
   tautulli:
     image: lscr.io/linuxserver/tautulli:latest
     depends_on:
-      overseerr:
+      jackett:
         condition: service_started
     container_name: tautulli
     network_mode: host
@@ -194,7 +198,7 @@ services:
   bazarr:
     image: lscr.io/linuxserver/bazarr:latest
     depends_on:
-      tautulli:
+      jackett:
         condition: service_started
     container_name: bazarr
     network_mode: host
@@ -211,7 +215,9 @@ services:
   prowlarr:
     image: lscr.io/linuxserver/prowlarr:latest
     depends_on:
-      jackett:
+      sonarr:
+        condition: service_started
+      radarr:
         condition: service_started
     container_name: prowlarr
     network_mode: host
