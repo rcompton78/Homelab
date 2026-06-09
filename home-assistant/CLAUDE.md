@@ -4,7 +4,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## What this repo is
 
-A Docker Compose-based smart home stack. All services run as containers on a single host and communicate over `network_mode: host`. The HA config volume (`$HOME/home-assistant`) lives outside this repo.
+A Docker Compose-based smart home stack. All services run as containers on a single host and communicate over `network_mode: host`. The HA config volume (`$DATA_DIR/home-assistant`) lives outside this repo.
 
 ## Stack management
 
@@ -16,23 +16,49 @@ A Docker Compose-based smart home stack. All services run as containers on a sin
 ./launch.bash update     # git pull + docker-compose pull + restart
 ```
 
-All `docker-compose` commands require `--env-file ha.env` (the script handles this automatically).
-
 View logs for a single service:
 ```bash
 docker logs -f <container-name>   # e.g. homeassistant, zigbee2mqtt, frigate
 ```
 
+## Environment
+
+Copy `ha.env.template` to `ha.env` and fill in values. Key variables:
+
+```
+DATA_DIR=/opt/homelab    # Host path for all service config/data
+EUFY_USERNAME=...
+EUFY_PASSWORD=...
+EUFY_PORT=3001
+REOLINK_USERNAME=...
+REOLINK_PASSWORD=...
+ESPHOME_USERNAME=...
+ESPHOME_PASSWORD=...
+```
+
+All `docker-compose` commands require `--env-file ha.env` (handled automatically by `launch.bash`).
+
+## Startup order
+
+Services start in 3 staged sets based on healthchecks:
+
+```
+Stage 1:  mosquitto                                    (healthcheck: mosquitto_pub to 127.0.0.1:1883)
+Stage 2:  zigbee2mqtt + eufy-security-ws               (parallel; zigbee2mqtt waits for mosquitto:healthy)
+          frigate + esphome                             (parallel; independent)
+Stage 3:  homeassistant                                (waits for all stage-2 services healthy)
+```
+
 ## Services, config locations, and ports
 
-| Service | Container name | Config in repo | Port |
-|---|---|---|---|
-| Home Assistant | `homeassistant` | none (config at `$HOME/home-assistant` on host) | 8123 |
-| Eufy Security WS | `eufy-security-ws` | via `ha.env` env vars | `$EUFY_PORT` |
-| Mosquitto (MQTT broker) | `mosquitto` | `mosquitto/mosquitto.conf` | 1883 |
-| Zigbee2MQTT | `zigbee2mqtt` | `zigbee2mqtt/configuration.yaml` | 8099 |
-| Frigate (NVR) | `frigate` | `frigate/config/config.yml` | 5000 (UI), 8554 (RTSP), 8555 (WebRTC) |
-| ESPHome | `esphome` | `$HOME/esphome/config` on host | 6052 |
+| Service | Container name | Config path | Port | Healthcheck |
+|---|---|---|---|---|
+| Home Assistant | `homeassistant` | `$DATA_DIR/home-assistant` | 8123 | depends on all below |
+| Eufy Security WS | `eufy-security-ws` | via `ha.env` env vars | `$EUFY_PORT` (3001) | `nc` TCP |
+| Mosquitto (MQTT broker) | `mosquitto` | `$DATA_DIR/mosquitto/` | 1883 | `mosquitto_pub` |
+| Zigbee2MQTT | `zigbee2mqtt` | `$DATA_DIR/zigbee2mqtt/` | 8099 | `nc` TCP |
+| Frigate (NVR) | `frigate` | `$DATA_DIR/frigate/config/` | 5000 (UI), 8554 (RTSP), 8555 (WebRTC) | `curl` HTTP |
+| ESPHome | `esphome` | `$DATA_DIR/esphome/config` | 6052 | `curl` HTTP |
 
 ## Key architectural points
 
@@ -42,7 +68,7 @@ docker logs -f <container-name>   # e.g. homeassistant, zigbee2mqtt, frigate
 - Frigate media is stored at `/data/frigate` on the host (outside this repo). Frigate's database (`frigate.db`) lives in `frigate/` inside the repo — do not delete it.
 - Zigbee2MQTT connects to Mosquitto at `mqtt://localhost` and exposes a frontend on port `8099`.
 - Mosquitto currently allows anonymous connections (auth lines are commented out in `mosquitto.conf`).
-- `homeassistant` depends on all other services in `docker-compose.yml`; bring everything up before HA to avoid missed startup events.
+- `homeassistant` uses `condition: service_healthy` on all dependencies — it will not start until each service passes its healthcheck.
 
 ## Credentials — sensitive files
 
@@ -58,7 +84,7 @@ Currently one camera configured: `front_door` pulling from a Reolink camera at `
 
 ## What is NOT in this repo
 
-- Home Assistant YAML config (automations, integrations, lovelace) — lives at `$HOME/home-assistant` on the host
-- ESPHome device configs — live at `$HOME/esphome/config` on the host
+- Home Assistant YAML config (automations, integrations, lovelace) — lives at `$DATA_DIR/home-assistant` on the host
+- ESPHome device configs — live at `$DATA_DIR/esphome/config` on the host
 - Frigate recorded media — stored at `/data/frigate`
-- Eufy persistent data — stored at `$HOME/eufy-data` on the host
+- Eufy persistent data — stored at `$DATA_DIR/eufy-data` on the host
