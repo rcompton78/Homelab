@@ -16,7 +16,7 @@ services:
     tmpfs:
     - /run
     - /tmp
-    restart: unless-stopped
+    restart: "no"
     security_opt:
     - label:disable
     stdin_open: true
@@ -56,7 +56,7 @@ services:
       - $DATA_DIR/plex/config:/config
       - $DATA_DIR/plex/transcode:/transcode
       - $MEDIA_ROOT:/data
-    restart: unless-stopped
+    restart: "no"
 
   radarr:
     image: linuxserver/radarr
@@ -76,7 +76,7 @@ services:
       - $DATA_DIR/radarr/config:/config
       - $MEDIA_ROOT/Movies:/movies
       - $MEDIA_ROOT/Complete:/downloads
-    restart: unless-stopped
+    restart: "no"
 
   sonarr:
     image: linuxserver/sonarr
@@ -98,7 +98,7 @@ services:
       - $DATA_DIR/sonarr/config:/config
       - $MEDIA_ROOT/TV:/tv
       - $MEDIA_ROOT/Complete:/downloads
-    restart: unless-stopped
+    restart: "no"
 
   jackett:
     image: linuxserver/jackett
@@ -115,7 +115,7 @@ services:
       - TZ="America/Edmonton"
     volumes:
       - $DATA_DIR/jackett/config:/config
-    restart: unless-stopped
+    restart: "no"
 
   sabnzbd:
     image: linuxserver/sabnzbd
@@ -138,7 +138,7 @@ services:
       timeout: 5s
       retries: 5
       start_period: 30s
-    restart: unless-stopped
+    restart: "no"
 
   deluge:
     image: linuxserver/deluge
@@ -162,7 +162,7 @@ services:
       timeout: 5s
       retries: 5
       start_period: 30s
-    restart: unless-stopped
+    restart: "no"
 
   overseerr:
     image: lscr.io/linuxserver/overseerr:latest
@@ -179,7 +179,7 @@ services:
       - TZ="America/Edmonton"
     volumes:
       - $DATA_DIR/overseer/config:/config
-    restart: unless-stopped
+    restart: "no"
   tautulli:
     image: lscr.io/linuxserver/tautulli:latest
     depends_on:
@@ -193,7 +193,7 @@ services:
       - TZ="America/Edmonton"
     volumes:
       - $DATA_DIR/tautulli/config:/config
-    restart: unless-stopped
+    restart: "no"
 
   bazarr:
     image: lscr.io/linuxserver/bazarr:latest
@@ -210,7 +210,7 @@ services:
       - $DATA_DIR/bazarr/config:/config
       - $MEDIA_ROOT/Movies:/movies
       - $MEDIA_ROOT/TV:/tv
-    restart: unless-stopped
+    restart: "no"
 
   prowlarr:
     image: lscr.io/linuxserver/prowlarr:latest
@@ -227,7 +227,7 @@ services:
       - TZ=America/Edmonton
     volumes:
       - $DATA_DIR/prowlarr/config:/config
-    restart: unless-stopped
+    restart: "no"
 
 
   web:
@@ -258,7 +258,7 @@ services:
     - /run
     - /tmp
     - /var/cache/nginx
-    restart: unless-stopped
+    restart: "no"
     stdin_open: true
     tty: true
     volumes:

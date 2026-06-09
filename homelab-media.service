@@ -6,6 +6,8 @@ Requires=docker.service
 [Service]
 Type=oneshot
 RemainAfterExit=yes
+Restart=on-failure
+RestartSec=10s
 WorkingDirectory=/home/compton/repos/Homelab
 ExecStart=/home/compton/repos/Homelab/launch.bash home-media-docker start
 ExecStop=/home/compton/repos/Homelab/launch.bash home-media-docker stop

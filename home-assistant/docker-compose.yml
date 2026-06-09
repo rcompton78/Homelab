@@ -3,7 +3,7 @@ services:
     image: eclipse-mosquitto
     hostname: mosquitto
     container_name: mosquitto
-    restart: unless-stopped
+    restart: "no"
     network_mode: host
     volumes:
       - $DATA_DIR/mosquitto:/etc/mosquitto
@@ -27,7 +27,7 @@ services:
       - USERNAME=${EUFY_USERNAME}
       - PASSWORD=${EUFY_PASSWORD}
       - PORT=${EUFY_PORT}
-    restart: unless-stopped
+    restart: "no"
     privileged: true
     network_mode: host
     healthcheck:
@@ -48,7 +48,7 @@ services:
       - /run/udev:/run/udev:ro
     devices:
       - /dev/ttyUSB0:/dev/ttyUSB0
-    restart: unless-stopped
+    restart: "no"
     network_mode: host
     privileged: true
     environment:
@@ -63,7 +63,7 @@ services:
   frigate:
     container_name: frigate
     privileged: true
-    restart: unless-stopped
+    restart: "no"
     image: ghcr.io/blakeblackshear/frigate:stable
     shm_size: "128mb"
     deploy:
@@ -106,7 +106,7 @@ services:
     volumes:
       - $DATA_DIR/esphome/config:/config
       - /etc/localtime:/etc/localtime:ro
-    restart: always
+    restart: "no"
     privileged: true
     network_mode: host
     environment:
@@ -138,6 +138,6 @@ services:
       - /etc/localtime:/etc/localtime:ro
     devices:
       - /dev/ttyUSB0:/dev/ttyUSB0
-    restart: unless-stopped
+    restart: "no"
     privileged: true
     network_mode: host
