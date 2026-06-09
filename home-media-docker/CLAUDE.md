@@ -11,12 +11,13 @@ A Docker Compose stack for a self-hosted home media server. Services are wired t
 Copy `.env.template` to `.env` and fill in your values before starting:
 
 ```
-MEDIA_ROOT=/media/ntfsdrive          # Where media files live
-DATA_DIR=/home/compton/home-media-docker  # Config/state per-service
-OPENVPN_CONF_ROOT=...               # Dir containing your .ovpn file
+MEDIA_ROOT=/media/ntfsdrive    # Where media files live
+DATA_DIR=/opt/homelab          # Config/state per-service
 ```
 
 The `.env` file is gitignored. `UUID`/`GUID` are injected at runtime by `launch.bash` via `id -u`.
+
+OpenVPN config lives at `$DATA_DIR/openvpn/conf/` — place your `vpn.conf`, `ca.crt`, and `login.conf` there. TorGuard server is `cavan.torguard.org:443` (UDP).
 
 ## Managing the stack
 
@@ -31,7 +32,19 @@ All lifecycle operations go through `launch.bash`:
 ./launch.bash config   # print resolved compose config (useful for debugging env vars)
 ```
 
-The `web` service is the compose entrypoint — starting it pulls in all dependencies.
+The `web` service is the compose entrypoint — starting it pulls in all dependencies. `docker compose up` (no target) also works and starts everything in order.
+
+## Startup order
+
+Services start in 4 parallel stages to balance speed and memory:
+
+```
+Stage 1:  vpn                                     (healthcheck: tun0 has IP)
+Stage 2:  deluge + sabnzbd                        (parallel, after vpn healthy)
+Stage 3:  sonarr + radarr                         (parallel, after download clients healthy)
+Stage 4a: jackett + prowlarr + overseerr          (parallel, after sonarr+radarr started)
+Stage 4b: tautulli + bazarr + plex                (parallel, after jackett started)
+```
 
 ## Architecture
 
@@ -40,7 +53,7 @@ VPN container (dperson/openvpn-client)
   └── sabnzbd  (NZB downloader, port 8080 via nginx)
   └── deluge   (torrent client, port 8112 via nginx)
 
-Host-network services (direct port access, no proxy):
+Host-network services (direct port access):
   plex       – media server with NVIDIA GPU transcode
   radarr     – movie management
   sonarr     – TV management
@@ -51,7 +64,7 @@ Host-network services (direct port access, no proxy):
   bazarr     – subtitle management
 
 nginx (web service, ports 8080/8112)
-  └── reverse proxies sabnzbd and deluge (which are on the VPN network, not host)
+  └── reverse proxies sabnzbd and deluge with WebSocket support
 ```
 
 **Key networking rule:** `sabnzbd` and `deluge` use `network_mode: service:vpn`, so all their traffic routes through the VPN container. They are not directly reachable from the host — nginx proxies them via the `vpn` container alias (`links: vpn:deluge`, `vpn:sabnzbd`). All other services use `network_mode: host`.
