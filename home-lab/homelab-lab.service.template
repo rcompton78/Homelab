@@ -1,0 +1,16 @@
+[Unit]
+Description=Homelab Lab Stack
+After=docker.service
+Requires=docker.service
+
+[Service]
+Type=oneshot
+RemainAfterExit=yes
+Restart=on-failure
+RestartSec=10s
+WorkingDirectory=__HOMELAB_ROOT__
+ExecStart=__HOMELAB_ROOT__/launch.bash home-lab start
+ExecStop=__HOMELAB_ROOT__/launch.bash home-lab stop
+
+[Install]
+WantedBy=multi-user.target
